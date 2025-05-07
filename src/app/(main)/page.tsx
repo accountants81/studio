@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProducts } from "@/contexts/ProductContext";
 import type { Product } from "@/types";
-import { ArrowLeft, Package, Shield, Smartphone } from "lucide-react";
+import { ArrowLeft, Package, Shield, Smartphone, LayoutGrid, BatteryCharging, Cable, Headphones, Navigation, Shapes } from "lucide-react";
 
 const HomePage = () => {
   const { products, isLoading } = useProducts();
@@ -15,9 +15,14 @@ const HomePage = () => {
   const featuredProducts = products.slice(0, 4);
 
   const categories = [
+    { name: "الكل", href: "/products", icon: <LayoutGrid className="h-12 w-12 text-primary" /> },
     { name: "جرابات", href: "/products?category=جرابات", icon: <Smartphone className="h-12 w-12 text-primary" /> },
     { name: "واقيات شاشة", href: "/products?category=واقيات شاشة", icon: <Shield className="h-12 w-12 text-primary" /> },
-    { name: "شواحن وكوابل", href: "/products?category=شواحن", icon: <Package className="h-12 w-12 text-primary" /> },
+    { name: "شواحن", href: "/products?category=شواحن", icon: <BatteryCharging className="h-12 w-12 text-primary" /> },
+    { name: "كوابل", href: "/products?category=كوابل", icon: <Cable className="h-12 w-12 text-primary" /> },
+    { name: "إكسسوارات صوت", href: "/products?category=إكسسوارات صوت", icon: <Headphones className="h-12 w-12 text-primary" /> },
+    { name: "حوامل", href: "/products?category=حوامل", icon: <Navigation className="h-12 w-12 text-primary" /> },
+    { name: "أخرى", href: "/products?category=أخرى", icon: <Shapes className="h-12 w-12 text-primary" /> },
   ];
 
   return (
@@ -87,7 +92,7 @@ const HomePage = () => {
                 </Link>
                 <CardContent className="flex-grow">
                   <p className="text-muted-foreground text-sm mb-2 line-clamp-2">{product.description}</p>
-                  <p className="text-xl font-semibold text-primary">{product.price} ج.م</p>
+                  <p className="text-xl font-semibold text-primary">{product.price.toFixed(2)} ج.م</p>
                 </CardContent>
                 <CardFooter>
                   <Button asChild className="w-full group">
@@ -107,7 +112,7 @@ const HomePage = () => {
       {/* Categories Section */}
       <section>
         <h2 className="text-3xl font-bold text-center mb-8">تصفح حسب الفئة</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {categories.map((category) => (
             <Link key={category.name} href={category.href}>
               <Card className="text-center p-6 hover:shadow-xl transition-shadow hover:border-primary/50 cursor-pointer h-full flex flex-col justify-center items-center">
