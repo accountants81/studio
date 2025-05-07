@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrders } from "@/contexts/OrderContext";
 import type { Order } from "@/types";
@@ -11,14 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Loader2, User, MapPin, Phone, Mail, ShoppingBag, CreditCard, CalendarDays, Tag } from "lucide-react";
+import { ArrowRight, Loader2, User, MapPin, Phone, Mail, ShoppingBag, CreditCard, CalendarDays, Tag, Home as HomeIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 const UserOrderDetailPage = () => {
   const params = useParams();
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const { getOrderById, isLoading: ordersLoading } = useOrders();
+  const { toast } = useToast(); // Initialize useToast
 
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(true);
@@ -35,7 +38,7 @@ const UserOrderDetailPage = () => {
       const fetchedOrder = getOrderById(orderId);
       if (fetchedOrder) {
         // Ensure the order belongs to the current user
-        if (fetchedOrder.userId === user.id || fetchedOrder.address.email === user.email) { // Added email check for guest orders if email was captured
+        if (fetchedOrder.userId === user.id || (fetchedOrder.address.email && user.email && fetchedOrder.address.email === user.email)) { 
             setOrder(fetchedOrder);
         } else {
              toast({ title: "غير مصرح به", description: "لا يمكنك عرض هذا الطلب.", variant: "destructive" });
@@ -46,9 +49,9 @@ const UserOrderDetailPage = () => {
         toast({ title: "طلب غير موجود", description: "لم يتم العثور على الطلب المطلوب.", variant: "destructive" });
         router.replace("/orders/history");
       }
-      setIsLoadingPage(ordersLoading || authLoading);
     }
-  }, [orderId, getOrderById, ordersLoading, user, authLoading, router]);
+    setIsLoadingPage(ordersLoading || authLoading);
+  }, [orderId, getOrderById, ordersLoading, user, authLoading, router, toast]); // Added toast to dependency array
 
   const translateStatus = (status: Order["status"]) => {
     switch (status) {
@@ -62,11 +65,11 @@ const UserOrderDetailPage = () => {
   };
 
   const statusColors: Record<Order["status"], string> = {
-    pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    processing: "bg-blue-100 text-blue-800 border-blue-300",
-    shipped: "bg-sky-100 text-sky-800 border-sky-300",
-    delivered: "bg-green-100 text-green-800 border-green-300",
-    cancelled: "bg-red-100 text-red-800 border-red-300",
+    pending: "bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700",
+    processing: "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
+    shipped: "bg-sky-100 text-sky-800 border-sky-300 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-700",
+    delivered: "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700",
+    cancelled: "bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
   };
 
 
@@ -92,7 +95,7 @@ const UserOrderDetailPage = () => {
       </Button>
       
       <Card className="shadow-xl overflow-hidden">
-        <CardHeader className="bg-muted/30">
+        <CardHeader className="bg-muted/30 dark:bg-muted/10">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
               <CardTitle className="text-2xl md:text-3xl font-bold text-primary">تفاصيل الطلب #{order.id.substring(0,8)}...</CardTitle>
@@ -114,7 +117,7 @@ const UserOrderDetailPage = () => {
               <p><User className="inline ml-1 h-4 w-4 text-muted-foreground rtl:mr-1 rtl:ml-0"/><strong>المستلم:</strong> {order.address.fullName}</p>
               <p><Phone className="inline ml-1 h-4 w-4 text-muted-foreground rtl:mr-1 rtl:ml-0"/><strong>الهاتف:</strong> <span dir="ltr">{order.address.phone}</span></p>
               {order.address.alternativePhone && <p><Phone className="inline ml-1 h-4 w-4 text-muted-foreground rtl:mr-1 rtl:ml-0"/><strong>هاتف بديل:</strong> <span dir="ltr">{order.address.alternativePhone}</span></p>}
-              <p><MapPin className="inline ml-1 h-4 w-4 text-muted-foreground rtl:mr-1 rtl:ml-0"/><strong>المحافظة:</strong> {order.address.governorate}</p>
+              <p><HomeIcon className="inline ml-1 h-4 w-4 text-muted-foreground rtl:mr-1 rtl:ml-0"/><strong>المحافظة:</strong> {order.address.governorate}</p>
               <p className="leading-relaxed"><strong>العنوان:</strong> {order.address.addressLine}</p>
               {order.address.distinctiveMark && <p><strong>علامة مميزة:</strong> {order.address.distinctiveMark}</p>}
               {order.address.email && <p><Mail className="inline ml-1 h-4 w-4 text-muted-foreground rtl:mr-1 rtl:ml-0"/><strong>البريد الإلكتروني:</strong> {order.address.email}</p>}
@@ -152,7 +155,7 @@ const UserOrderDetailPage = () => {
             <h3 className="text-xl font-semibold flex items-center mb-4"><ShoppingBag className="ml-2 h-6 w-6 text-primary rtl:mr-2 rtl:ml-0"/>المنتجات في هذا الطلب</h3>
             <div className="space-y-4">
               {order.items.map(item => (
-                <div key={item.id} className="flex flex-col sm:flex-row items-center gap-4 p-4 border rounded-lg bg-background hover:bg-muted/30 transition-colors">
+                <div key={item.id} className="flex flex-col sm:flex-row items-center gap-4 p-4 border rounded-lg bg-background hover:bg-muted/30 dark:hover:bg-muted/20 transition-colors">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 relative rounded-md overflow-hidden bg-muted flex-shrink-0">
                     <Image
                       src={item.images[0] || "https://picsum.photos/seed/orderdetailitem/150"}
@@ -183,10 +186,5 @@ const UserOrderDetailPage = () => {
     </div>
   );
 };
-// Placeholder for toast function if not globally available or imported
-const toast = (options: { title: string, description: string, variant?: "destructive" | "default" }) => {
-  console.log(`Toast: ${options.title} - ${options.description}`);
-};
-
 
 export default UserOrderDetailPage;

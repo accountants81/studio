@@ -47,11 +47,11 @@ const OrderHistoryPage = () => {
   };
 
   const statusColors: Record<"pending" | "processing" | "shipped" | "delivered" | "cancelled", string> = {
-    pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    processing: "bg-blue-100 text-blue-800 border-blue-300",
-    shipped: "bg-sky-100 text-sky-800 border-sky-300",
-    delivered: "bg-green-100 text-green-800 border-green-300",
-    cancelled: "bg-red-100 text-red-800 border-red-300",
+    pending: "bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700",
+    processing: "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700",
+    shipped: "bg-sky-100 text-sky-800 border-sky-300 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-700",
+    delivered: "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700",
+    cancelled: "bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
   };
 
   return (
@@ -93,7 +93,7 @@ const OrderHistoryPage = () => {
               </TableHeader>
               <TableBody>
                 {userOrders.map((order) => (
-                  <TableRow key={order.id} className="hover:bg-muted/50">
+                  <TableRow key={order.id} className="hover:bg-muted/50 dark:hover:bg-muted/20">
                     <TableCell className="font-mono text-xs">{order.id.substring(0,12)}...</TableCell>
                     <TableCell>{new Date(order.orderDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
                     <TableCell className="text-center font-semibold">{order.totalAmount.toFixed(2)}</TableCell>

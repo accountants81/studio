@@ -42,6 +42,17 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, submitButtonText = "
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const filesArray = Array.from(event.target.files);
+      
+      // Limit total images to 5
+      if (images.length + filesArray.length > 5) {
+        toast({
+          title: "حد أقصى للصور",
+          description: "يمكنك تحميل 5 صور كحد أقصى للمنتج.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setImageFiles(prevFiles => [...prevFiles, ...filesArray]);
 
       filesArray.forEach(file => {
@@ -72,6 +83,15 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, submitButtonText = "
       });
       return;
     }
+     if (price < 0) {
+      toast({
+        title: "خطأ في السعر",
+        description: "سعر المنتج لا يمكن أن يكون أقل من صفر.",
+        variant: "destructive",
+      });
+      return;
+    }
+
 
     const productData = {
       name,
@@ -91,10 +111,10 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, submitButtonText = "
   const availableCategories = ["جرابات", "واقيات شاشة", "شواحن", "كوابل", "إكسسوارات صوت", "حوامل", "أخرى"];
 
   return (
-    <Card className="shadow-xl">
+    <Card className="shadow-xl bg-[var(--card)] text-[var(--card-foreground)] border-[var(--border)]">
       <CardHeader>
-        <CardTitle className="text-2xl md:text-3xl flex items-center">
-          <PackageIcon className="ml-3 h-8 w-8 text-primary rtl:mr-3 rtl:ml-0" />
+        <CardTitle className="text-2xl md:text-3xl flex items-center text-foreground">
+          <PackageIcon className="ml-3 h-8 w-8 text-[var(--primary)] rtl:mr-3 rtl:ml-0" />
           {formTitle}
         </CardTitle>
       </CardHeader>
@@ -102,23 +122,23 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, submitButtonText = "
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">اسم المنتج</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="مثال: جراب سيليكون لآيفون 15" />
+              <Label htmlFor="name" className="text-muted-foreground">اسم المنتج</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="مثال: جراب سيليكون لآيفون 15" className="bg-[var(--input)] text-foreground border-[var(--border)] focus:ring-[var(--ring)]" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="price">السعر (ج.م)</Label>
-              <Input id="price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} required min="0" step="0.01" placeholder="مثال: 250.00" />
+              <Label htmlFor="price" className="text-muted-foreground">السعر (ج.م)</Label>
+              <Input id="price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} required min="0" step="0.01" placeholder="مثال: 250.00" className="bg-[var(--input)] text-foreground border-[var(--border)] focus:ring-[var(--ring)]" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">الفئة</Label>
+            <Label htmlFor="category" className="text-muted-foreground">الفئة</Label>
             <select
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
-              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full items-center justify-between rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="" disabled>اختر فئة...</option>
               {availableCategories.map(cat => (
@@ -128,41 +148,43 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, submitButtonText = "
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">وصف المنتج</Label>
-            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required rows={5} placeholder="وصف تفصيلي للمنتج، مميزاته، المواد المصنوع منها، إلخ." />
+            <Label htmlFor="description" className="text-muted-foreground">وصف المنتج</Label>
+            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} required rows={5} placeholder="وصف تفصيلي للمنتج، مميزاته، المواد المصنوع منها، إلخ." className="bg-[var(--input)] text-foreground border-[var(--border)] focus:ring-[var(--ring)]" />
           </div>
 
           <div className="space-y-2">
-            <Label>صور المنتج</Label>
+            <Label className="text-muted-foreground">صور المنتج (حد أقصى 5)</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {images.map((imageSrc, index) => (
-                <div key={index} className="relative group aspect-square border rounded-md overflow-hidden">
+                <div key={index} className="relative group aspect-square border border-[var(--border)] rounded-md overflow-hidden">
                   <Image src={imageSrc} alt={`صورة المنتج ${index + 1}`} layout="fill" objectFit="cover" />
                   <Button
                     type="button"
                     variant="destructive"
                     size="icon"
-                    className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--destructive)] text-[var(--destructive-foreground)] hover:bg-[var(--destructive)]/90"
                     onClick={() => removeImage(index)}
                   >
                     <Trash2 size={16} />
                   </Button>
                 </div>
               ))}
-              <Label
-                htmlFor="imageUpload"
-                className="aspect-square border-2 border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors"
-              >
-                <UploadCloud size={32} className="text-muted-foreground mb-2" />
-                <span className="text-xs text-muted-foreground text-center">إضافة صورة</span>
-              </Label>
+              {images.length < 5 && (
+                 <Label
+                    htmlFor="imageUpload"
+                    className="aspect-square border-2 border-dashed border-muted-foreground/50 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[var(--primary)] hover:bg-[var(--muted)]/50 transition-colors"
+                    >
+                    <UploadCloud size={32} className="text-muted-foreground mb-2" />
+                    <span className="text-xs text-muted-foreground text-center">إضافة صورة</span>
+                </Label>
+              )}
             </div>
             <Input id="imageUpload" type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
-            <p className="text-xs text-muted-foreground mt-1">يمكنك إضافة صور متعددة. الصورة الأولى ستكون الرئيسية.</p>
+            <p className="text-xs text-muted-foreground mt-1">يمكنك إضافة حتى 5 صور. الصورة الأولى ستكون الرئيسية.</p>
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto text-lg py-3 group">
+          <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto text-lg py-3 group bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90">
             {isSubmitting ? "جارِ الحفظ..." : (
               <>
                 {submitButtonText}

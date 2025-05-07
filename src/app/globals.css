@@ -38,80 +38,81 @@ body {
 
     --radius: 0.5rem;
 
-    /* Dark theme variables, applied when .dark class is present */
-    --dark-background: 0 0% 7%; /* #121212 */
-    --dark-foreground: 0 0% 96%; /* #F5F5F5 */
-    --dark-card: 0 0% 10%; /* Slightly lighter than background for cards */
-    --dark-card-foreground: 0 0% 96%;
-    --dark-popover: 0 0% 10%;
-    --dark-popover-foreground: 0 0% 96%;
-    --dark-primary: 347 100% 51%; /* Accent for dark theme */
-    --dark-primary-foreground: 0 0% 98%;
-    --dark-secondary: 0 0% 14.9%;
-    --dark-secondary-foreground: 0 0% 98%;
-    --dark-muted: 0 0% 14.9%;
-    --dark-muted-foreground: 0 0% 63.9%;
-    --dark-accent: 347 100% 51%;
-    --dark-accent-foreground: 0 0% 98%;
-    --dark-destructive: 0 62.8% 30.6%;
-    --dark-destructive-foreground: 0 0% 98%;
-    --dark-border: 0 0% 20%; /* Darker border for dark theme */
-    --dark-input: 0 0% 20%; /* Darker input for dark theme */
-    --dark-ring: 347 100% 51%;
-
-    /* Sidebar specific variables for dark theme */
-    --sidebar-background-dark: 0 0% 10%; /* Slightly different shade for sidebar */
-    --sidebar-foreground-dark: 0 0% 96%;
-    --sidebar-primary-dark: 347 100% 51%;
-    --sidebar-primary-foreground-dark: 0 0% 98%;
-    --sidebar-accent-dark: 0 0% 15%;
-    --sidebar-accent-foreground-dark: 0 0% 96%;
-    --sidebar-border-dark: 0 0% 20%;
-    --sidebar-ring-dark: 347 100% 51%;
+    /* Sidebar variables (used by components/ui/sidebar.tsx) - Light theme defaults */
+    --sidebar-background: 240 10% 98%; /* Light grey for light theme sidebar */
+    --sidebar-foreground: 240 10% 3.9%;
+    --sidebar-border: 240 5.9% 88%;
+    --sidebar-ring: var(--ring);
+    --sidebar-primary: var(--primary); /* Use main primary for sidebar primary */
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: 240 4.8% 90%; /* Lighter accent for light sidebar */
+    --sidebar-accent-foreground: 240 5.9% 10%;
   }
 
   .dark {
-    --background: var(--dark-background);
-    --foreground: var(--dark-foreground);
-    --card: var(--dark-card);
-    --card-foreground: var(--dark-card-foreground);
-    --popover: var(--dark-popover);
-    --popover-foreground: var(--dark-popover-foreground);
-    --primary: var(--dark-primary);
-    --primary-foreground: var(--dark-primary-foreground);
-    --secondary: var(--dark-secondary);
-    --secondary-foreground: var(--dark-secondary-foreground);
-    --muted: var(--dark-muted);
-    --muted-foreground: var(--dark-muted-foreground);
-    --accent: var(--dark-accent);
-    --accent-foreground: var(--dark-accent-foreground);
-    --destructive: var(--dark-destructive);
-    --destructive-foreground: var(--dark-destructive-foreground);
-    --border: var(--dark-border);
-    --input: var(--dark-input);
-    --ring: var(--dark-ring);
+    --background: 0 0% 7%; /* #121212 */
+    --foreground: 0 0% 96%; /* #F5F5F5 */
+    --card: 0 0% 10%; /* Slightly lighter than background for cards */
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 347 100% 51%; /* Accent for dark theme */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 347 100% 51%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 70% 45%; /* Adjusted for better dark mode visibility */
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%; /* Darker border for dark theme */
+    --input: 0 0% 20%; /* Darker input for dark theme */
+    --ring: 347 100% 51%;
 
-    /* Sidebar dark theme overrides */
-    --sidebar-background: var(--sidebar-background-dark);
-    --sidebar-foreground: var(--sidebar-foreground-dark);
-    --sidebar-primary: var(--sidebar-primary-dark);
-    --sidebar-primary-foreground: var(--sidebar-primary-foreground-dark);
-    --sidebar-accent: var(--sidebar-accent-dark);
-    --sidebar-accent-foreground: var(--sidebar-accent-foreground-dark);
-    --sidebar-border: var(--sidebar-border-dark);
-    --sidebar-ring: var(--sidebar-ring-dark);
+    /* Sidebar variables - Dark theme defaults */
+    --sidebar-background: 0 0% 10%; /* Dark background for sidebar */
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: var(--ring);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: 0 0% 15%; /* Darker accent for dark sidebar */
+    --sidebar-accent-foreground: 0 0% 96%;
   }
 
-  /* Light theme sidebar (if not explicitly dark) */
-  :root:not(.dark) {
-    --sidebar-background: 240 10% 98%; /* Light grey for light theme sidebar */
-    --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-primary: 347 100% 51%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 90%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 240 5.9% 85%;
-    --sidebar-ring: 347 100% 51%;
+  /* Admin specific theme overrides */
+  .admin-layout {
+    /* General theme for admin pages when .admin-layout is present */
+    --background: 220 15% 9%;    /* Admin Dark Background */
+    --foreground: 220 10% 92%;   /* Admin Light Foreground */
+    --card: 220 15% 12%;       /* Admin Card Background */
+    --card-foreground: 220 10% 92%;
+    --popover: 220 15% 12%;
+    --popover-foreground: 220 10% 92%;
+    --primary: 200 80% 58%;      /* Admin Primary Blue */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 220 10% 92%;
+    --muted: 220 15% 20%;
+    --muted-foreground: 220 10% 70%;
+    --accent: 200 80% 50%;       /* Admin Accent Blue (can be same as primary or slightly different) */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 70% 50%; /* Admin Destructive Red */
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 15% 25%;       /* Admin Border */
+    --input: 220 15% 25%;        /* Admin Input Background */
+    --ring: 200 80% 58%;         /* Admin Ring Blue */
+
+    /* Sidebar specific variables for admin theme */
+    --sidebar-background: 220 15% 11%; /* Slightly different from main admin bg */
+    --sidebar-foreground: 220 10% 90%;
+    --sidebar-border: 220 15% 22%;
+    --sidebar-ring: var(--ring); /* Use admin ring */
+    --sidebar-primary: var(--primary); /* Use admin primary */
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: 220 15% 20%; /* Admin sidebar accent */
+    --sidebar-accent-foreground: 220 10% 95%;
   }
 }
 
@@ -123,8 +124,13 @@ body {
     @apply bg-background text-foreground;
     direction: rtl; /* Default to RTL */
   }
+  /* Default to dark mode for the entire site */
   html {
-    @apply dark; /* Force dark mode by default */
+     @apply dark;
+  }
+  /* Ensure admin layout also applies dark mode if html.dark is the trigger */
+  .admin-layout {
+    @apply dark; /* This might be redundant if html is already dark, but ensures admin is dark */
   }
 }
 
@@ -134,12 +140,13 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
+  background: hsl(var(--muted) / 0.5); /* Slightly more transparent track */
   border-radius: 0.5rem;
 }
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--primary));
   border-radius: 0.5rem;
+  border: 2px solid hsl(var(--muted) / 0.5); /* Border around thumb */
 }
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary) / 0.8);

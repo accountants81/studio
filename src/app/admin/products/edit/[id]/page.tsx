@@ -36,8 +36,8 @@ const EditProductPage = () => {
         });
         router.replace("/admin/products");
       }
-      setIsLoadingPage(productsLoading);
     }
+    setIsLoadingPage(productsLoading);
   }, [productId, getProductById, productsLoading, router, toast]);
 
   const handleSubmit = async (productData: Product) => {
@@ -62,7 +62,7 @@ const EditProductPage = () => {
   if (isLoadingPage) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <Loader2 className="h-12 w-12 animate-spin text-[var(--primary)]" />
         <p className="ml-4 text-lg text-muted-foreground">جارِ تحميل بيانات المنتج...</p>
       </div>
     );
@@ -75,7 +75,11 @@ const EditProductPage = () => {
 
   return (
     <div className="space-y-6">
-      <Button onClick={() => router.back()} variant="outline" className="mb-6 group">
+      <Button 
+        onClick={() => router.back()} 
+        variant="outline" 
+        className="mb-6 group border-[var(--border)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+      >
         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
         العودة إلى المنتجات
       </Button>

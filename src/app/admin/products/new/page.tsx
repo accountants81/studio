@@ -37,7 +37,11 @@ const AddProductPage = () => {
 
   return (
     <div className="space-y-6">
-       <Button onClick={() => router.back()} variant="outline" className="mb-6 group">
+       <Button 
+        onClick={() => router.back()} 
+        variant="outline" 
+        className="mb-6 group border-[var(--border)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+       >
          <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
         العودة إلى المنتجات
       </Button>
