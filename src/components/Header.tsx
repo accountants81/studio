@@ -17,24 +17,18 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { useState, useEffect } from "react";
+import { useState } from "react"; // useEffect removed as local cartCount state is removed
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 
 const Header = () => {
   const { user, logout, isAdmin } = useAuth();
-  const { getCartItemCount } = useCart();
+  const { cartItems } = useCart(); // getCartItemCount can also be used if preferred
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
-  // State for cart item count to ensure re-render
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    setCartCount(getCartItemCount());
-  }, [getCartItemCount, useCart().cartItems]); // Depend on cartItems from useCart() for reactivity
-
+  // Calculate cart count directly from cartItems for reliable reactivity
+  const currentCartItemCount = cartItems.reduce((count, item) => count + item.quantity, 0);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -57,6 +51,9 @@ const Header = () => {
         { href: "/admin/products/new", label: "إضافة منتج", icon: <PackagePlus className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0"/> }, 
         { href: "/admin/orders", label: "إدارة الطلبات", icon: <ListOrdered className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0"/> }
     ] : []),
+     ...(user ? [ // Add "My Orders" for any logged-in user
+      { href: "/orders/history", label: "طلباتي", icon: <ListOrdered className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0"/> }
+    ] : [])
   ];
 
 
@@ -94,9 +91,9 @@ const Header = () => {
           <Link href="/cart" aria-label="عربة التسوق">
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
+              {currentCartItemCount > 0 && (
                 <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                  {cartCount}
+                  {currentCartItemCount}
                 </Badge>
               )}
               <span className="sr-only">عربة التسوق</span>
@@ -143,7 +140,7 @@ const Header = () => {
                         <span>طلباتي</span>
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout} className="text-destructive flex items-center cursor-pointer w-full">
+                <DropdownMenuItem onClick={logout} className="text-destructive hover:!text-destructive flex items-center cursor-pointer w-full focus:bg-destructive/10 focus:!text-destructive">
                   <LogOut className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0" />
                   <span>تسجيل الخروج</span>
                 </DropdownMenuItem>
@@ -169,7 +166,9 @@ const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64 p-2">
                 <DropdownMenuGroup>
-                  {mobileNavLinks.map((link) => (
+                  {mobileNavLinks
+                    .filter(link => user || (!link.href.startsWith('/admin') && link.href !== '/orders/history')) // Filter admin/order links if not logged in
+                    .map((link) => (
                     <DropdownMenuItem key={link.href} asChild>
                       <Link href={link.href} className="flex items-center w-full text-md py-2 px-3">
                         {link.icon}
@@ -177,6 +176,12 @@ const Header = () => {
                       </Link>
                     </DropdownMenuItem>
                   ))}
+                   {user && (
+                     <DropdownMenuItem onClick={logout} className="text-destructive hover:!text-destructive flex items-center cursor-pointer w-full text-md py-2 px-3 focus:bg-destructive/10 focus:!text-destructive">
+                      <LogOut className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0" />
+                      <span>تسجيل الخروج</span>
+                    </DropdownMenuItem>
+                   )}
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
