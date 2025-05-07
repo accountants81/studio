@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProducts } from "@/contexts/ProductContext";
 import type { Product } from "@/types";
-import { ArrowLeft, Search, ShoppingCartIcon } from "lucide-react";
+import { Search, ShoppingCartIcon } from "lucide-react"; // Removed ArrowLeft
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "next/navigation";
@@ -128,10 +128,8 @@ const ProductsPage = () => {
                 <p className="text-xl font-semibold text-primary">{product.price} ج.م</p>
               </CardContent>
               <CardFooter className="flex flex-col sm:flex-row gap-2 pt-0">
-                <Button asChild className="w-full group">
-                  <Link href={`/products/${product.id}`}>
-                    التفاصيل <ArrowLeft className="mr-1 h-4 w-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180 rtl:group-hover:translate-x-1" />
-                  </Link>
+                <Button className="w-full group" onClick={() => handleAddToCart(product)}>
+                  أضف للسلة <ShoppingCartIcon className="mr-1 h-4 w-4 transition-transform group-hover:scale-110 rtl:ml-1 rtl:mr-0" />
                 </Button>
                 <Button variant="outline" className="w-full group" onClick={() => handleAddToCart(product)}>
                   أضف للسلة <ShoppingCartIcon className="mr-1 h-4 w-4 transition-transform group-hover:scale-110 rtl:ml-1 rtl:mr-0" />
