@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/ui/label"; // Keep if used directly, but FormLabel is preferred
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -21,8 +21,8 @@ import { useOrders } from "@/contexts/OrderContext";
 import { EGYPTIAN_GOVERNORATES, MIN_ORDER_VALUE } from "@/lib/constants";
 import type { OrderAddress, PaymentMethod } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Home, Phone, Truck, UserCircle, Mail, MapPin, CheckCircle, ArrowLeft } from "lucide-react";
-import { getShippingDetails as mockGetShippingDetails } from '@/services/egypt-shipping';
+import { CreditCard, Home, Phone, Truck, UserCircle, Mail, MapPin, CheckCircle, ArrowLeft, Loader2 } from "lucide-react";
+// import { getShippingDetails as mockGetShippingDetails } from '@/services/egypt-shipping'; // Not used currently
 
 const addressSchema = z.object({
   fullName: z.string().min(3, "الاسم الكامل مطلوب (3 أحرف على الأقل)"),
@@ -41,57 +41,79 @@ type AddressFormData = z.infer<typeof addressSchema>;
 
 const CheckoutPage = () => {
   const router = useRouter();
-  const { user } = useAuth();
-  const { cartItems, getCartTotal, clearCart, isMinOrderValueMet } = useCart();
-  const { addOrder } = useOrders();
+  const { user, isLoading: authLoading } = useAuth();
+  const { cartItems, getCartTotal, clearCart, isMinOrderValueMet, isLoading: cartLoading } = useCart();
+  const { addOrder, isLoading: orderSubmitting } = useOrders(); // use isLoading from orders context
   const { toast } = useToast();
   const [shippingCost, setShippingCost] = useState(0);
+  const [pageLoading, setPageLoading] = useState(true); // For overall page readiness
 
   const form = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
-      fullName: user?.name || "",
-      email: user?.email || "",
+      fullName: "", // Will be set by useEffect
+      email: "",    // Will be set by useEffect
       alternativePhone: "",
       distinctiveMark: "",
       paymentMethod: "cash_on_delivery",
+      governorate: "",
     },
   });
 
   const selectedGovernorateName = form.watch("governorate");
 
   useEffect(() => {
-    if (!isMinOrderValueMet || cartItems.length === 0) {
-      toast({
-        title: "السلة لا تستوفي الشروط",
-        description: `الحد الأدنى للطلب هو ${MIN_ORDER_VALUE} ج.م أو السلة فارغة.`,
-        variant: "destructive",
+    if (!authLoading && user) {
+      form.reset({
+        ...form.getValues(), // preserve other fields
+        fullName: user.name || "",
+        email: user.email || "",
       });
-      router.push("/cart");
     }
-  }, [isMinOrderValueMet, cartItems, router, toast]);
+  }, [user, authLoading, form]);
+
+
+  useEffect(() => {
+    if (!cartLoading) { // Only proceed if cart is loaded
+        if (!isMinOrderValueMet || cartItems.length === 0) {
+            toast({
+                title: "السلة لا تستوفي الشروط",
+                description: `الحد الأدنى للطلب هو ${MIN_ORDER_VALUE} ج.م أو السلة فارغة.`,
+                variant: "destructive",
+            });
+            router.push("/cart");
+        } else {
+           setPageLoading(false); // Cart is valid, page is ready
+        }
+    }
+  }, [isMinOrderValueMet, cartItems, router, toast, cartLoading]);
   
   useEffect(() => {
     const governorateData = EGYPTIAN_GOVERNORATES.find(g => g.name === selectedGovernorateName);
     if (governorateData) {
       setShippingCost(governorateData.shippingCost);
     } else {
-      // Fallback or default shipping cost if governorate not found or not selected
-      // This might be a good place to use the mockGetShippingDetails if needed
-      // For now, set to a default or keep as is if a default is set earlier
-      setShippingCost(EGYPTIAN_GOVERNORATES.find(g => g.id === 'cairo')?.shippingCost || 50); // Default to Cairo if nothing selected
+      setShippingCost(0); // Set to 0 or a default initial cost if no governorate selected yet
     }
-  }, [selectedGovernorateName]);
+  }, [selectedGovernorateName, form]); // Added form to deps to re-evaluate if form values change e.g. on reset
 
 
   const cartTotal = getCartTotal();
   const orderTotal = cartTotal + shippingCost;
 
   const onSubmit: SubmitHandler<AddressFormData> = async (data) => {
-    if (!isMinOrderValueMet) {
-      toast({ title: "خطأ", description: `الحد الأدنى للطلب هو ${MIN_ORDER_VALUE} ج.م`, variant: "destructive" });
+    if (!isMinOrderValueMet || cartItems.length === 0) {
+      toast({ title: "خطأ", description: `الحد الأدنى للطلب هو ${MIN_ORDER_VALUE} ج.م أو السلة فارغة.`, variant: "destructive" });
       return;
     }
+    if (shippingCost === 0 && selectedGovernorateName){ // Ensure shipping is calculated for selected governorate
+        const govData = EGYPTIAN_GOVERNORATES.find(g => g.name === selectedGovernorateName);
+        if(!govData || govData.shippingCost === 0) { // Could be an issue if a gov genuinely has 0 cost
+             toast({ title: "خطأ في الشحن", description: "لم يتم حساب تكلفة الشحن بشكل صحيح. يرجى إعادة تحديد المحافظة.", variant: "destructive" });
+             return;
+        }
+    }
+
 
     const orderData: OrderAddress = {
       fullName: data.fullName,
@@ -123,7 +145,7 @@ const CheckoutPage = () => {
         )
       });
       clearCart();
-      router.push("/order-confirmation"); // Or a specific order success page
+      router.push("/order-confirmation"); 
     } catch (error) {
       console.error("Order submission error:", error);
       toast({
@@ -133,9 +155,18 @@ const CheckoutPage = () => {
       });
     }
   };
+  
+  if (pageLoading || cartLoading || authLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12 text-center flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-lg text-muted-foreground">جارِ تحميل صفحة الدفع...</p>
+      </div>
+    );
+  }
 
-  if (cartItems.length === 0 && !form.formState.isSubmitting) {
-     // Handled by useEffect redirect, but good to have a fallback UI
+
+  if (cartItems.length === 0 && !orderSubmitting && !pageLoading) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-semibold">سلتك فارغة</h1>
@@ -150,7 +181,7 @@ const CheckoutPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <Button onClick={() => router.back()} variant="outline" className="mb-6 group">
-        <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180 rtl:group-hover:translate-x-1" />
+        <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180 rtl:group-hover:translate-x-1 rtl:mr-0 rtl:ml-2" />
         العودة إلى السلة
       </Button>
       <h1 className="text-3xl md:text-4xl font-bold mb-8 text-primary flex items-center">
@@ -174,7 +205,7 @@ const CheckoutPage = () => {
                     <FormItem>
                       <FormLabel>الاسم الكامل</FormLabel>
                       <FormControl>
-                        <Input placeholder="ادخل اسمك الكامل" {...field} />
+                        <Input placeholder="ادخل اسمك الكامل" {...field} disabled={orderSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -188,7 +219,7 @@ const CheckoutPage = () => {
                       <FormItem>
                         <FormLabel>رقم الهاتف</FormLabel>
                         <FormControl>
-                          <Input type="tel" placeholder="01xxxxxxxxx" {...field} />
+                          <Input type="tel" placeholder="01xxxxxxxxx" {...field} disabled={orderSubmitting} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -201,7 +232,7 @@ const CheckoutPage = () => {
                       <FormItem>
                         <FormLabel>رقم هاتف بديل (اختياري)</FormLabel>
                         <FormControl>
-                          <Input type="tel" placeholder="01xxxxxxxxx" {...field} />
+                          <Input type="tel" placeholder="01xxxxxxxxx" {...field} disabled={orderSubmitting} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -214,7 +245,7 @@ const CheckoutPage = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>المحافظة</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={orderSubmitting}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر محافظتك" />
@@ -239,7 +270,7 @@ const CheckoutPage = () => {
                     <FormItem>
                       <FormLabel>العنوان التفصيلي</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="مثال: ١٢٣ شارع النصر، بجوار مسجد السلام، الدور الثالث، شقة ٥" {...field} />
+                        <Textarea placeholder="مثال: ١٢٣ شارع النصر، بجوار مسجد السلام، الدور الثالث، شقة ٥" {...field} disabled={orderSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -252,7 +283,7 @@ const CheckoutPage = () => {
                     <FormItem>
                       <FormLabel>علامة مميزة للعنوان (اختياري)</FormLabel>
                       <FormControl>
-                        <Input placeholder="مثال: بالقرب من سوبر ماركت المدينة" {...field} />
+                        <Input placeholder="مثال: بالقرب من سوبر ماركت المدينة" {...field} disabled={orderSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -265,7 +296,7 @@ const CheckoutPage = () => {
                     <FormItem>
                       <FormLabel>البريد الإلكتروني (اختياري)</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="لتلقي تحديثات الطلب" {...field} />
+                        <Input type="email" placeholder="لتلقي تحديثات الطلب" {...field} disabled={orderSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -289,6 +320,7 @@ const CheckoutPage = () => {
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                           className="flex flex-col space-y-2"
+                          disabled={orderSubmitting}
                         >
                           <FormItem className="flex items-center space-x-3 space-y-0 rtl:space-x-reverse">
                             <FormControl>
@@ -322,8 +354,13 @@ const CheckoutPage = () => {
                 />
               </CardContent>
             </Card>
-            <Button type="submit" size="lg" className="w-full text-lg py-3 group" disabled={form.formState.isSubmitting || !isMinOrderValueMet}>
-              {form.formState.isSubmitting ? "جارِ تأكيد الطلب..." : (
+            <Button type="submit" size="lg" className="w-full text-lg py-3 group" disabled={orderSubmitting || pageLoading || !isMinOrderValueMet || !selectedGovernorateName || shippingCost <= 0}>
+              {orderSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin rtl:ml-2 rtl:mr-0" />
+                  جارِ تأكيد الطلب...
+                </>
+              ) : (
                 <>
                   تأكيد الطلب <CheckCircle className="mr-2 h-5 w-5 transition-transform group-hover:scale-110 rtl:ml-2 rtl:mr-0" />
                 </>
@@ -354,7 +391,7 @@ const CheckoutPage = () => {
               </div>
               <div className="flex justify-between text-md">
                 <span>رسوم الشحن ({selectedGovernorateName || "اختر محافظة"}):</span>
-                <span>{shippingCost > 0 ? `${shippingCost.toFixed(2)} ج.م` : "يُحسب"}</span>
+                <span>{shippingCost > 0 ? `${shippingCost.toFixed(2)} ج.م` : (selectedGovernorateName ? "يُحسب..." : "اختر محافظة أولاً")}</span>
               </div>
               <Separator className="my-3"/>
               <div className="flex justify-between text-xl font-bold text-primary">
@@ -363,7 +400,7 @@ const CheckoutPage = () => {
               </div>
             </CardContent>
              <CardFooter>
-                 {!isMinOrderValueMet && (
+                 {(!isMinOrderValueMet && cartItems.length > 0) && (
                     <p className="text-destructive text-sm text-center w-full">الحد الأدنى للطلب هو {MIN_ORDER_VALUE} ج.م. لا يمكنك إكمال الطلب.</p>
                 )}
              </CardFooter>

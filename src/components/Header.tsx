@@ -15,20 +15,26 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const Header = () => {
   const { user, logout, isAdmin } = useAuth();
   const { getCartItemCount } = useCart();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
-  const cartItemCount = getCartItemCount();
+  // State for cart item count to ensure re-render
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    setCartCount(getCartItemCount());
+  }, [getCartItemCount, useCart().cartItems]); // Depend on cartItems from useCart() for reactivity
+
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,37 +52,41 @@ const Header = () => {
 
   const mobileNavLinks = [
     ...navLinks,
-    ...(user && isAdmin ? [{ href: "/admin/dashboard", label: "لوحة التحكم" }, { href: "/admin/products/new", label: "إضافة منتج" }, { href: "/admin/orders", label: "إدارة الطلبات" }] : []),
+    ...(user && isAdmin ? [
+        { href: "/admin/dashboard", label: "لوحة التحكم", icon: <ShieldCheck className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0"/> }, 
+        { href: "/admin/products/new", label: "إضافة منتج", icon: <PackagePlus className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0"/> }, 
+        { href: "/admin/orders", label: "إدارة الطلبات", icon: <ListOrdered className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0"/> }
+    ] : []),
   ];
 
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
-        <Link href="/" className="mr-6 flex items-center space-x-2 rtl:space-x-reverse">
-          <span className="font-bold text-2xl text-primary">{SITE_NAME}</span>
+      <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4">
+        <Link href="/" className="mr-4 flex items-center space-x-2 rtl:space-x-reverse shrink-0">
+          <span className="font-bold text-xl sm:text-2xl text-primary">{SITE_NAME}</span>
         </Link>
 
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium rtl:space-x-reverse">
+        <nav className="hidden md:flex items-center space-x-4 lg:space-x-6 text-sm font-medium rtl:space-x-reverse">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="transition-colors hover:text-primary"
+              className="transition-colors hover:text-primary px-2 py-1"
             >
               {link.label}
             </Link>
           ))}
         </nav>
         
-        <div className="flex flex-1 items-center justify-end space-x-2 rtl:space-x-reverse">
-          <form onSubmit={handleSearch} className="relative hidden sm:block ml-4">
+        <div className="flex flex-1 items-center justify-end space-x-1 sm:space-x-2 rtl:space-x-reverse">
+          <form onSubmit={handleSearch} className="relative flex-1 max-w-xs sm:max-w-sm md:max-w-md ml-2 sm:ml-4">
             <Input
               type="search"
-              placeholder="ابحث عن منتجات..."
+              placeholder="ابحث..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full rounded-md pl-8 pr-4 sm:w-64 text-foreground placeholder:text-muted-foreground"
+              className="h-9 w-full rounded-md pl-8 pr-2 text-foreground placeholder:text-muted-foreground text-sm"
             />
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           </form>
@@ -84,11 +94,12 @@ const Header = () => {
           <Link href="/cart" aria-label="عربة التسوق">
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
-              {cartItemCount > 0 && (
+              {cartCount > 0 && (
                 <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                  {cartItemCount}
+                  {cartCount}
                 </Badge>
               )}
+              <span className="sr-only">عربة التسوق</span>
             </Button>
           </Link>
 
@@ -97,6 +108,7 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <UserIcon className="h-5 w-5" />
+                   <span className="sr-only">قائمة المستخدم</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -105,28 +117,34 @@ const Header = () => {
                 {isAdmin && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link href="/admin/dashboard" className="flex items-center">
-                        <ShieldCheck className="mr-2 h-4 w-4" />
+                      <Link href="/admin/dashboard" className="flex items-center w-full">
+                        <ShieldCheck className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0" />
                         <span>لوحة التحكم</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                       <Link href="/admin/products/new" className="flex items-center">
-                        <PackagePlus className="mr-2 h-4 w-4" />
+                       <Link href="/admin/products/new" className="flex items-center w-full">
+                        <PackagePlus className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0" />
                         <span>إضافة منتج</span>
                       </Link>
                     </DropdownMenuItem>
                      <DropdownMenuItem asChild>
-                       <Link href="/admin/orders" className="flex items-center">
-                        <ListOrdered className="mr-2 h-4 w-4" />
+                       <Link href="/admin/orders" className="flex items-center w-full">
+                        <ListOrdered className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0" />
                         <span>إدارة الطلبات</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
                 )}
-                <DropdownMenuItem onClick={logout} className="text-destructive flex items-center cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
+                 <DropdownMenuItem asChild>
+                    <Link href="/orders/history" className="flex items-center w-full">
+                        <ListOrdered className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0" />
+                        <span>طلباتي</span>
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={logout} className="text-destructive flex items-center cursor-pointer w-full">
+                  <LogOut className="ml-2 h-4 w-4 rtl:mr-2 rtl:ml-0" />
                   <span>تسجيل الخروج</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -135,42 +153,33 @@ const Header = () => {
             <Link href="/login" aria-label="تسجيل الدخول">
               <Button variant="ghost" size="icon">
                 <LogIn className="h-5 w-5" />
+                <span className="sr-only">تسجيل الدخول</span>
               </Button>
             </Link>
           )}
 
+          {/* Mobile Menu */}
           <div className="md:hidden">
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="h-6 w-6" />
+                  <span className="sr-only">فتح القائمة</span>
                 </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-3/4 p-6 pt-10 bg-background">
-                 <form onSubmit={handleSearch} className="relative mb-6">
-                    <Input
-                      type="search"
-                      placeholder="ابحث عن منتجات..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-10 w-full rounded-md pl-10 pr-4 text-foreground placeholder:text-muted-foreground"
-                    />
-                    <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                  </form>
-                <nav className="flex flex-col space-y-4">
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 p-2">
+                <DropdownMenuGroup>
                   {mobileNavLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="text-lg transition-colors hover:text-primary"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {link.label}
-                    </Link>
+                    <DropdownMenuItem key={link.href} asChild>
+                      <Link href={link.href} className="flex items-center w-full text-md py-2 px-3">
+                        {link.icon}
+                        {link.label}
+                      </Link>
+                    </DropdownMenuItem>
                   ))}
-                </nav>
-              </SheetContent>
-            </Sheet>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

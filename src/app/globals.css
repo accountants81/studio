@@ -83,36 +83,43 @@ body {
 
   /* Admin specific theme overrides */
   .admin-layout {
-    /* General theme for admin pages when .admin-layout is present */
-    --background: 220 15% 9%;    /* Admin Dark Background */
-    --foreground: 220 10% 92%;   /* Admin Light Foreground */
-    --card: 220 15% 12%;       /* Admin Card Background */
-    --card-foreground: 220 10% 92%;
-    --popover: 220 15% 12%;
-    --popover-foreground: 220 10% 92%;
-    --primary: 200 80% 58%;      /* Admin Primary Blue */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 220 15% 20%;
+    --background: 220 10% 10%;    /* Admin Dark Background (e.g. #1a1b1e) */
+    --foreground: 220 10% 95%;   /* Admin Light Foreground (e.g. #f2f2f3) */
+    
+    --card: 220 10% 13%;       /* Admin Card Background (e.g. #1f2023) */
+    --card-foreground: 220 10% 95%;
+    
+    --popover: 220 10% 13%;
+    --popover-foreground: 220 10% 95%;
+    
+    --primary: 205 75% 55%;      /* Admin Primary Blue (e.g. #3b82f6 adjusted) */
+    --primary-foreground: 0 0% 98%; /* White/very light gray for text on primary */
+    
+    --secondary: 220 10% 20%;    /* Admin Secondary (e.g. #2c2d30) */
     --secondary-foreground: 220 10% 92%;
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 10% 70%;
-    --accent: 200 80% 50%;       /* Admin Accent Blue (can be same as primary or slightly different) */
+    
+    --muted: 220 10% 20%;
+    --muted-foreground: 220 10% 70%; /* Lighter muted text (e.g. #a0a1a7) */
+    
+    --accent: 205 75% 50%;       /* Admin Accent Blue (e.g. #2563eb adjusted) */
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 70% 50%; /* Admin Destructive Red */
+    
+    --destructive: 0 65% 55%;     /* Admin Destructive Red (e.g. #ef4444 adjusted) */
     --destructive-foreground: 0 0% 98%;
-    --border: 220 15% 25%;       /* Admin Border */
-    --input: 220 15% 25%;        /* Admin Input Background */
-    --ring: 200 80% 58%;         /* Admin Ring Blue */
+    
+    --border: 220 10% 22%;       /* Admin Border (e.g. #313236) */
+    --input: 220 10% 22%;        /* Admin Input Background */
+    --ring: 205 75% 55%;         /* Admin Ring Blue */
 
     /* Sidebar specific variables for admin theme */
-    --sidebar-background: 220 15% 11%; /* Slightly different from main admin bg */
-    --sidebar-foreground: 220 10% 90%;
-    --sidebar-border: 220 15% 22%;
-    --sidebar-ring: var(--ring); /* Use admin ring */
-    --sidebar-primary: var(--primary); /* Use admin primary */
+    --sidebar-background: 220 10% 8%;  /* Darker Sidebar Background (e.g. #141517) */
+    --sidebar-foreground: 220 10% 90%;   /* Sidebar Foreground (e.g. #e5e5e6) */
+    --sidebar-border: 220 10% 20%;     /* Sidebar Border (e.g. #2c2d30) */
+    --sidebar-ring: var(--ring);        /* Use admin ring */
+    --sidebar-primary: var(--primary);  /* Use admin primary */
     --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: 220 15% 20%; /* Admin sidebar accent */
-    --sidebar-accent-foreground: 220 10% 95%;
+    --sidebar-accent: 220 10% 18%;     /* Admin sidebar accent (e.g. #292a2d) */
+    --sidebar-accent-foreground: 220 10% 95%; /* Accent text color */
   }
 }
 
@@ -150,4 +157,16 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary) / 0.8);
+}
+
+/* Ensure admin layout scrollbar uses admin theme colors */
+.admin-layout ::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.5); /* Muted from admin theme */
+}
+.admin-layout ::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary)); /* Primary from admin theme */
+   border: 2px solid hsl(var(--muted) / 0.5);
+}
+.admin-layout ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.8); /* Primary from admin theme, slightly lighter */
 }
