@@ -51,12 +51,14 @@ const CheckoutPage = () => {
   const form = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
-      fullName: "", // Will be set by useEffect
-      email: "",    // Will be set by useEffect
+      fullName: "", 
+      email: "",    
+      phone: "", // Explicitly initialize to empty string
       alternativePhone: "",
+      governorate: "",
+      addressLine: "", // Explicitly initialize to empty string
       distinctiveMark: "",
       paymentMethod: "cash_on_delivery",
-      governorate: "",
     },
   });
 
