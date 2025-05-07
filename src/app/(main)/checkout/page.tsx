@@ -3,12 +3,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link"; // Added import
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Keep if used directly, but FormLabel is preferred
+// import { Label } from "@/components/ui/label"; // Keep if used directly, but FormLabel is preferred
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -51,12 +52,12 @@ const CheckoutPage = () => {
   const form = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
-      fullName: "", 
-      email: "",    
-      phone: "", // Explicitly initialize to empty string
+      fullName: user?.name || "",
+      email: user?.email || "",
+      phone: "",
       alternativePhone: "",
       governorate: "",
-      addressLine: "", // Explicitly initialize to empty string
+      addressLine: "",
       distinctiveMark: "",
       paymentMethod: "cash_on_delivery",
     },
@@ -70,6 +71,13 @@ const CheckoutPage = () => {
         ...form.getValues(), // preserve other fields
         fullName: user.name || "",
         email: user.email || "",
+        // Keep other defaultValues or initialize them based on user if needed
+        phone: form.getValues().phone || "", // Preserve phone if already entered
+        alternativePhone: form.getValues().alternativePhone || "",
+        governorate: form.getValues().governorate || "",
+        addressLine: form.getValues().addressLine || "",
+        distinctiveMark: form.getValues().distinctiveMark || "",
+        paymentMethod: form.getValues().paymentMethod || "cash_on_delivery",
       });
     }
   }, [user, authLoading, form]);
