@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"; // Added import
 import { useProducts } from "@/contexts/ProductContext";
 import type { Product } from "@/types";
 import { ArrowRight, ChevronLeft, ChevronRight, ShoppingCart, Tag, Info } from "lucide-react";
