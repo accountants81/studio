@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // Added import
+import Link from "next/link"; 
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -52,8 +52,8 @@ const CheckoutPage = () => {
   const form = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
-      fullName: user?.name || "",
-      email: user?.email || "",
+      fullName: "",
+      email: "",
       phone: "",
       alternativePhone: "",
       governorate: "",
@@ -68,44 +68,57 @@ const CheckoutPage = () => {
   useEffect(() => {
     if (!authLoading && user) {
       form.reset({
-        ...form.getValues(), // preserve other fields
         fullName: user.name || "",
         email: user.email || "",
-        // Keep other defaultValues or initialize them based on user if needed
-        phone: form.getValues().phone || "", // Preserve phone if already entered
+        phone: form.getValues().phone || "", 
         alternativePhone: form.getValues().alternativePhone || "",
         governorate: form.getValues().governorate || "",
         addressLine: form.getValues().addressLine || "",
         distinctiveMark: form.getValues().distinctiveMark || "",
         paymentMethod: form.getValues().paymentMethod || "cash_on_delivery",
       });
+    } else if (!authLoading && !user) {
+        // If not logged in and auth is not loading, clear potential previous user data
+        form.reset({
+            fullName: "",
+            email: "",
+            phone: "",
+            alternativePhone: "",
+            governorate: "",
+            addressLine: "",
+            distinctiveMark: "",
+            paymentMethod: "cash_on_delivery",
+        });
     }
   }, [user, authLoading, form]);
 
 
   useEffect(() => {
-    if (!cartLoading) { // Only proceed if cart is loaded
-        if (!isMinOrderValueMet || cartItems.length === 0) {
-            toast({
-                title: "السلة لا تستوفي الشروط",
-                description: `الحد الأدنى للطلب هو ${MIN_ORDER_VALUE} ج.م أو السلة فارغة.`,
-                variant: "destructive",
-            });
-            router.push("/cart");
-        } else {
-           setPageLoading(false); // Cart is valid, page is ready
-        }
+    // Determine initial page loading state
+    if (!cartLoading && !authLoading) {
+      if (!isMinOrderValueMet || cartItems.length === 0) {
+        toast({
+          title: "السلة لا تستوفي الشروط",
+          description: `الحد الأدنى للطلب هو ${MIN_ORDER_VALUE} ج.م أو السلة فارغة.`,
+          variant: "destructive",
+        });
+        router.push("/cart");
+        // No need to setPageLoading(false) here as we're redirecting
+      } else {
+        setPageLoading(false); // Cart is valid, auth checked, page is ready
+      }
     }
-  }, [isMinOrderValueMet, cartItems, router, toast, cartLoading]);
+    // Intentionally not setting pageLoading to true here as it's for initial load
+  }, [isMinOrderValueMet, cartItems, router, toast, cartLoading, authLoading]);
   
   useEffect(() => {
     const governorateData = EGYPTIAN_GOVERNORATES.find(g => g.name === selectedGovernorateName);
     if (governorateData) {
       setShippingCost(governorateData.shippingCost);
     } else {
-      setShippingCost(0); // Set to 0 or a default initial cost if no governorate selected yet
+      setShippingCost(0); 
     }
-  }, [selectedGovernorateName, form]); // Added form to deps to re-evaluate if form values change e.g. on reset
+  }, [selectedGovernorateName]);
 
 
   const cartTotal = getCartTotal();
@@ -116,14 +129,13 @@ const CheckoutPage = () => {
       toast({ title: "خطأ", description: `الحد الأدنى للطلب هو ${MIN_ORDER_VALUE} ج.م أو السلة فارغة.`, variant: "destructive" });
       return;
     }
-    if (shippingCost === 0 && selectedGovernorateName){ // Ensure shipping is calculated for selected governorate
+    if (shippingCost === 0 && selectedGovernorateName){ 
         const govData = EGYPTIAN_GOVERNORATES.find(g => g.name === selectedGovernorateName);
-        if(!govData || govData.shippingCost === 0) { // Could be an issue if a gov genuinely has 0 cost
+        if(!govData || govData.shippingCost === 0) { 
              toast({ title: "خطأ في الشحن", description: "لم يتم حساب تكلفة الشحن بشكل صحيح. يرجى إعادة تحديد المحافظة.", variant: "destructive" });
              return;
         }
     }
-
 
     const orderData: OrderAddress = {
       fullName: data.fullName,
@@ -166,7 +178,7 @@ const CheckoutPage = () => {
     }
   };
   
-  if (pageLoading || cartLoading || authLoading) {
+  if (pageLoading || cartLoading || authLoading) { // pageLoading covers the initial check of cart conditions
     return (
       <div className="container mx-auto px-4 py-12 text-center flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -175,14 +187,16 @@ const CheckoutPage = () => {
     );
   }
 
-
-  if (cartItems.length === 0 && !orderSubmitting && !pageLoading) {
+  // This case should ideally be caught by the useEffect redirect, but as a fallback
+  if ((!isMinOrderValueMet || cartItems.length === 0) && !orderSubmitting && !cartLoading) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-semibold">سلتك فارغة</h1>
-        <p className="text-muted-foreground mt-2 mb-4">لا يمكنك المتابعة للدفع بسلة فارغة.</p>
+        <h1 className="text-2xl font-semibold">السلة لا تستوفي الشروط</h1>
+        <p className="text-muted-foreground mt-2 mb-4">
+          {cartItems.length === 0 ? "سلتك فارغة. لا يمكنك المتابعة للدفع." : `الحد الأدنى للطلب هو ${MIN_ORDER_VALUE} ج.م.`}
+        </p>
         <Button asChild>
-          <Link href="/products">العودة للمنتجات</Link>
+          <Link href="/cart">العودة إلى السلة</Link>
         </Button>
       </div>
     );
@@ -332,27 +346,32 @@ const CheckoutPage = () => {
                           className="flex flex-col space-y-2"
                           disabled={orderSubmitting}
                         >
-                          <FormItem className="flex items-center space-x-3 space-y-0 rtl:space-x-reverse">
+                          <FormItem className="flex items-start space-x-3 space-y-0 rtl:space-x-reverse p-3 border rounded-md hover:bg-muted/50 transition-colors">
                             <FormControl>
-                              <RadioGroupItem value="cash_on_delivery" />
+                              <RadioGroupItem value="cash_on_delivery" className="mt-1"/>
                             </FormControl>
-                            <FormLabel className="font-normal text-md">
-                              الدفع عند الاستلام
-                            </FormLabel>
+                            <div className="flex-1">
+                                <FormLabel className="font-normal text-md cursor-pointer">
+                                الدفع عند الاستلام
+                                </FormLabel>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  يجب دفع جزء من ثمن الطلب مقدمًا لتأكيد الطلب. سيتم التواصل معك لشرح التفاصيل.
+                                </p>
+                            </div>
                           </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0 rtl:space-x-reverse">
+                          <FormItem className="flex items-center space-x-3 space-y-0 rtl:space-x-reverse p-3 border rounded-md hover:bg-muted/50 transition-colors">
                             <FormControl>
                               <RadioGroupItem value="vodafone_cash" />
                             </FormControl>
-                            <FormLabel className="font-normal text-md">
+                            <FormLabel className="font-normal text-md cursor-pointer">
                               فودافون كاش (سيتم التواصل معك للتأكيد)
                             </FormLabel>
                           </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0 rtl:space-x-reverse">
+                          <FormItem className="flex items-center space-x-3 space-y-0 rtl:space-x-reverse p-3 border rounded-md hover:bg-muted/50 transition-colors">
                             <FormControl>
                               <RadioGroupItem value="fawry" />
                             </FormControl>
-                            <FormLabel className="font-normal text-md">
+                            <FormLabel className="font-normal text-md cursor-pointer">
                               فوري (سيتم التواصل معك للتأكيد)
                             </FormLabel>
                           </FormItem>
@@ -364,7 +383,7 @@ const CheckoutPage = () => {
                 />
               </CardContent>
             </Card>
-            <Button type="submit" size="lg" className="w-full text-lg py-3 group" disabled={orderSubmitting || pageLoading || !isMinOrderValueMet || !selectedGovernorateName || shippingCost <= 0}>
+            <Button type="submit" size="lg" className="w-full text-lg py-3 group" disabled={orderSubmitting || pageLoading || !isMinOrderValueMet || !selectedGovernorateName || (selectedGovernorateName && shippingCost <= 0 && EGYPTIAN_GOVERNORATES.find(g => g.name === selectedGovernorateName)?.shippingCost !== 0) }>
               {orderSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin rtl:ml-2 rtl:mr-0" />
@@ -401,7 +420,7 @@ const CheckoutPage = () => {
               </div>
               <div className="flex justify-between text-md">
                 <span>رسوم الشحن ({selectedGovernorateName || "اختر محافظة"}):</span>
-                <span>{shippingCost > 0 ? `${shippingCost.toFixed(2)} ج.م` : (selectedGovernorateName ? "يُحسب..." : "اختر محافظة أولاً")}</span>
+                <span>{shippingCost > 0 ? `${shippingCost.toFixed(2)} ج.م` : (selectedGovernorateName ? (EGYPTIAN_GOVERNORATES.find(g=>g.name === selectedGovernorateName && g.shippingCost === 0) ? "0.00 ج.م" : "يُحسب...") : "اختر محافظة أولاً")}</span>
               </div>
               <Separator className="my-3"/>
               <div className="flex justify-between text-xl font-bold text-primary">
@@ -422,3 +441,4 @@ const CheckoutPage = () => {
 };
 
 export default CheckoutPage;
+
