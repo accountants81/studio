@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
-import { Cairo } from "next/font/google"; // Changed from Geist to Cairo for Arabic
+import { Cairo } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ProductProvider } from "@/contexts/ProductContext";
-import { CartProvider } from "@/contexts/CartContext";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/constants";
-import AppProviders from "./AppProviders"; // New component to wrap client providers
+import AppProviders from "./AppProviders";
 
-const cairo = Cairo({ // Using Cairo font
+const cairo = Cairo({
   subsets: ["arabic", "latin"],
   variable: "--font-cairo",
 });
@@ -24,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className="dark"> {/* Set lang to Arabic, dir to RTL, and enable dark mode by default */}
+    <html lang="ar" dir="rtl" className="dark">
       <body className={`${cairo.variable} font-sans antialiased bg-background text-foreground`}>
         <AppProviders>
           {children}
